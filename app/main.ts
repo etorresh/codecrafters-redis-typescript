@@ -1,11 +1,16 @@
 import * as net from "net";
 
-// You can use print statements as follows for debugging, they'll be visible when running tests.
-console.log("Logs from your program will appear here!");
+import { parse } from "./lib/resp-parser";
+import { execute } from "./lib/executor";
 
-// Uncomment the code below to pass the first stage
 const server: net.Server = net.createServer((connection: net.Socket) => {
     connection.addListener("data", (data) => {
+        if (typeof data === "string") {
+            console.warn("Parser expected a Buffer but received a string");
+            return;
+        }
+        const [result, _] = parse(data, 0);
+        execute(connection, result);
         connection.write("+PONG\r\n");
     });
 });
